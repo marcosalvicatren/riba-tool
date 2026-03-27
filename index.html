@@ -7,666 +7,355 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-body {
-  font-family: 'Segoe UI', system-ui, sans-serif;
-  background: #f0ede8;
-  color: #1a1a18;
-  min-height: 100vh;
-  font-size: 14px;
-  line-height: 1.5;
-}
-header {
-  background: #0c2340;
-  color: #fff;
-  padding: 16px 32px;
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  position: sticky;
-  top: 0;
-  z-index: 10;
-}
-header h1 { font-size: 16px; font-weight: 600; letter-spacing: -0.2px; }
-header .badge {
-  margin-left: auto;
-  background: rgba(255,255,255,0.12);
-  padding: 3px 10px;
-  border-radius: 20px;
-  font-size: 11px;
-  opacity: 0.8;
-}
-main { max-width: 1080px; margin: 0 auto; padding: 28px 20px 60px; }
-
-.card {
-  background: #fff;
-  border-radius: 12px;
-  border: 1px solid #e2ddd6;
-  padding: 22px 26px;
-  margin-bottom: 18px;
-}
-.card-title {
-  font-size: 11px;
-  font-weight: 600;
-  color: #7a776e;
-  text-transform: uppercase;
-  letter-spacing: 0.6px;
-  margin-bottom: 16px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-.step-num {
-  background: #0c2340;
-  color: #fff;
-  width: 20px; height: 20px;
-  border-radius: 50%;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 11px;
-  font-weight: 700;
-  flex-shrink: 0;
-}
-
-/* Drop zone */
-.drop-zone {
-  border: 2px dashed #c8c3ba;
-  border-radius: 10px;
-  padding: 36px 24px;
-  text-align: center;
-  cursor: pointer;
-  transition: border-color 0.2s, background 0.2s;
-}
-.drop-zone:hover, .drop-zone.over {
-  border-color: #185fa5;
-  background: #eef5fc;
-}
-.drop-zone .dz-icon { font-size: 32px; margin-bottom: 8px; }
-.drop-zone .dz-title { font-size: 15px; font-weight: 500; margin-bottom: 4px; }
-.drop-zone .dz-sub { font-size: 13px; color: #7a776e; }
-.drop-zone.loaded { border-style: solid; border-color: #3b6d11; background: #f2f8eb; }
-.drop-zone.loaded .dz-title { color: #3b6d11; }
-
-/* Params grid */
-.params { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
-@media (max-width: 600px) { .params { grid-template-columns: 1fr; } }
-.field label { display: block; font-size: 12px; color: #7a776e; font-weight: 500; margin-bottom: 5px; }
-.field input {
-  width: 100%;
-  padding: 8px 11px;
-  border: 1px solid #d2cec6;
-  border-radius: 7px;
-  font-size: 14px;
-  font-family: inherit;
-  background: #fff;
-  transition: border-color 0.15s, box-shadow 0.15s;
-}
-.field input:focus { outline: none; border-color: #185fa5; box-shadow: 0 0 0 3px #e6f1fb; }
-.field input.readonly { background: #f2f8eb; color: #27500a; font-weight: 600; cursor: default; }
-
-/* Table */
-.tbl-wrap { overflow-x: auto; }
-table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 640px; }
-thead th {
-  background: #0c2340;
-  color: #fff;
-  padding: 9px 10px;
-  text-align: left;
-  font-weight: 500;
-  font-size: 12px;
-  white-space: nowrap;
-}
-thead th:first-child { border-radius: 7px 0 0 0; }
-thead th:last-child { border-radius: 0 7px 0 0; }
-tbody tr:nth-child(even) td { background: #faf9f7; }
-tbody tr:hover td { background: #f0ede8; }
-td { padding: 8px 10px; border-bottom: 1px solid #ebe8e0; vertical-align: middle; }
-tbody tr:last-child td { border-bottom: none; }
-tfoot td { background: #e8f0f8 !important; font-weight: 600; color: #0c447c; padding: 10px 10px; }
-.num { text-align: right; font-variant-numeric: tabular-nums; }
-.conto-dare { font-weight: 700; color: #27500a; }
-.conto-avere-input {
-  width: 130px;
-  padding: 5px 8px;
-  border: 1px solid #d2cec6;
-  border-radius: 6px;
-  font-size: 13px;
-  font-family: inherit;
-}
-.conto-avere-input:focus { outline: none; border-color: #185fa5; box-shadow: 0 0 0 2px #e6f1fb; }
-.conto-avere-input.missing { border-color: #e09a30; background: #fffbf0; }
-.pill {
-  display: inline-block;
-  padding: 2px 9px;
-  border-radius: 20px;
-  font-size: 11px;
-  font-weight: 600;
-  white-space: nowrap;
-}
-.pill-ok { background: #eaf3de; color: #27500a; }
-.pill-warn { background: #faeeda; color: #854f0b; }
-
-/* Buttons */
-.btn-row { display: flex; gap: 10px; flex-wrap: wrap; }
-button {
-  padding: 9px 20px;
-  border-radius: 7px;
-  font-size: 13px;
-  font-family: inherit;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.15s;
-  border: none;
-}
-.btn-primary { background: #0c2340; color: #fff; }
-.btn-primary:hover { background: #163554; }
-.btn-primary:disabled { background: #b4b2a9; cursor: not-allowed; }
-.btn-ghost { background: #fff; color: #444441; border: 1px solid #d2cec6; }
-.btn-ghost:hover { background: #f0ede8; }
-.btn-danger { background: #fff; color: #a32d2d; border: 1px solid #f0a0a0; }
-.btn-danger:hover { background: #fcebeb; }
-
-/* Alerts */
-.alert {
-  padding: 10px 14px;
-  border-radius: 8px;
-  font-size: 13px;
-  margin-bottom: 14px;
-  display: flex;
-  align-items: flex-start;
-  gap: 8px;
-}
-.alert-ok { background: #eaf3de; color: #27500a; border: 1px solid #b5d97a; }
-.alert-warn { background: #faeeda; color: #854f0b; border: 1px solid #f5c87a; }
-.alert-err { background: #fcebeb; color: #a32d2d; border: 1px solid #f0a0a0; }
-
-/* Anagrafica panel */
-.ana-info {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-.ana-count {
-  background: #eaf3de;
-  color: #27500a;
-  padding: 4px 12px;
-  border-radius: 20px;
-  font-size: 12px;
-  font-weight: 600;
-}
-.hidden { display: none !important; }
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:#f0ede8;color:#1a1a18;min-height:100vh;font-size:14px;line-height:1.5}
+header{background:#0c2340;color:#fff;padding:16px 32px;display:flex;align-items:center;gap:16px}
+header h1{font-size:16px;font-weight:600}
+header .badge{margin-left:auto;background:rgba(255,255,255,0.12);padding:3px 10px;border-radius:20px;font-size:11px;opacity:.8}
+main{max-width:1080px;margin:0 auto;padding:28px 20px 60px}
+.card{background:#fff;border-radius:12px;border:1px solid #e2ddd6;padding:22px 26px;margin-bottom:18px}
+.card-title{font-size:11px;font-weight:600;color:#7a776e;text-transform:uppercase;letter-spacing:.6px;margin-bottom:16px;display:flex;align-items:center;gap:8px}
+.step-num{background:#0c2340;color:#fff;width:20px;height:20px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0}
+.drop-zone{border:2px dashed #c8c3ba;border-radius:10px;padding:36px 24px;text-align:center;cursor:pointer;transition:border-color .2s,background .2s}
+.drop-zone:hover,.drop-zone.over{border-color:#185fa5;background:#eef5fc}
+.drop-zone .dz-icon{font-size:32px;margin-bottom:8px}
+.drop-zone .dz-title{font-size:15px;font-weight:500;margin-bottom:4px}
+.drop-zone .dz-sub{font-size:13px;color:#7a776e}
+.drop-zone.loaded{border-style:solid;border-color:#3b6d11;background:#f2f8eb}
+.drop-zone.loaded .dz-title{color:#3b6d11}
+.params{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+.field label{display:block;font-size:12px;color:#7a776e;font-weight:500;margin-bottom:5px}
+.field input{width:100%;padding:8px 11px;border:1px solid #d2cec6;border-radius:7px;font-size:14px;font-family:inherit}
+.field input:focus{outline:none;border-color:#185fa5;box-shadow:0 0 0 3px #e6f1fb}
+.field input.readonly{background:#f2f8eb;color:#27500a;font-weight:600;cursor:default}
+.tbl-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13px;min-width:640px}
+thead th{background:#0c2340;color:#fff;padding:9px 10px;text-align:left;font-weight:500;font-size:12px;white-space:nowrap}
+thead th:first-child{border-radius:7px 0 0 0}
+thead th:last-child{border-radius:0 7px 0 0}
+tbody tr:nth-child(even) td{background:#faf9f7}
+tbody tr:hover td{background:#f0ede8}
+td{padding:8px 10px;border-bottom:1px solid #ebe8e0;vertical-align:middle}
+tbody tr:last-child td{border-bottom:none}
+tfoot td{background:#e8f0f8!important;font-weight:600;color:#0c447c;padding:10px}
+.num{text-align:right;font-variant-numeric:tabular-nums}
+.conto-dare{font-weight:700;color:#27500a}
+.conto-avere-input{width:130px;padding:5px 8px;border:1px solid #d2cec6;border-radius:6px;font-size:13px;font-family:inherit}
+.conto-avere-input:focus{outline:none;border-color:#185fa5;box-shadow:0 0 0 2px #e6f1fb}
+.conto-avere-input.missing{border-color:#e09a30;background:#fffbf0}
+.pill{display:inline-block;padding:2px 9px;border-radius:20px;font-size:11px;font-weight:600;white-space:nowrap}
+.pill-ok{background:#eaf3de;color:#27500a}
+.pill-warn{background:#faeeda;color:#854f0b}
+.btn-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px}
+button{padding:9px 20px;border-radius:7px;font-size:13px;font-family:inherit;font-weight:500;cursor:pointer;transition:all .15s;border:none}
+.btn-primary{background:#0c2340;color:#fff}
+.btn-primary:hover{background:#163554}
+.btn-ghost{background:#fff;color:#444441;border:1px solid #d2cec6}
+.btn-ghost:hover{background:#f0ede8}
+.alert{padding:10px 14px;border-radius:8px;font-size:13px;margin-bottom:14px}
+.alert-ok{background:#eaf3de;color:#27500a;border:1px solid #b5d97a}
+.alert-warn{background:#faeeda;color:#854f0b;border:1px solid #f5c87a}
+.alert-err{background:#fcebeb;color:#a32d2d;border:1px solid #f0a0a0}
+.ana-info{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.ana-count{background:#eaf3de;color:#27500a;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:600}
+.hidden{display:none!important}
+details{margin-top:12px}
+summary{font-size:12px;color:#7a776e;cursor:pointer}
+pre{font-size:11px;background:#f5f5f0;padding:10px;border-radius:6px;margin-top:8px;overflow-x:auto;white-space:pre-wrap;max-height:200px;overflow-y:auto}
 </style>
 </head>
 <body>
-
 <header>
-  <div>
-    <h1>&#128196; Tool Ri.Ba. → GB Software</h1>
-  </div>
-  <span class="badge">CREA Srl · IN02 · Conto Dare 47042</span>
+  <h1>&#128196; Tool Ri.Ba. &#8594; GB Software</h1>
+  <span class="badge">CREA Srl &middot; IN02 &middot; Conto Dare 47042</span>
 </header>
-
 <main>
 
-<!-- ANAGRAFICA -->
 <div class="card">
   <div class="card-title"><span class="step-num">A</span> Anagrafica clienti</div>
   <div class="ana-info">
-    <span id="ana-count" class="ana-count">Caricamento…</span>
+    <span id="ana-count" class="ana-count">Caricamento...</span>
     <button class="btn-ghost" onclick="document.getElementById('ana-file').click()">&#8593; Aggiorna da Excel</button>
     <input type="file" id="ana-file" accept=".xlsx,.xls,.csv" style="display:none">
-    <span id="ana-name" style="font-size:12px;color:#7a776e;"></span>
+    <span id="ana-name" style="font-size:12px;color:#7a776e"></span>
   </div>
 </div>
 
-<!-- UPLOAD PDF -->
 <div class="card">
-  <div class="card-title"><span class="step-num">1</span> Carica distinta Ri.Ba. (PDF)</div>
+  <div class="card-title"><span class="step-num">1</span> Carica distinta Ri.Ba. (PDF scansionato)</div>
   <div class="drop-zone" id="drop-zone" onclick="document.getElementById('pdf-file').click()">
-    <div class="dz-icon">📄</div>
+    <div class="dz-icon">&#128196;</div>
     <div class="dz-title" id="dz-title">Trascina il PDF oppure clicca per selezionarlo</div>
-    <div class="dz-sub" id="dz-sub">La struttura viene letta automaticamente</div>
+    <div class="dz-sub" id="dz-sub">Supporta PDF scansionati</div>
   </div>
   <input type="file" id="pdf-file" accept=".pdf" style="display:none">
 </div>
 
-<!-- PARAMS -->
 <div class="card hidden" id="card-params">
   <div class="card-title"><span class="step-num">2</span> Parametri registrazione</div>
   <div class="params">
-    <div class="field">
-      <label>Data registrazione / presentazione</label>
-      <input type="date" id="data-reg">
-    </div>
-    <div class="field">
-      <label>Numero distinta</label>
-      <input type="text" id="num-distinta" placeholder="es. 33/2025">
-    </div>
-    <div class="field">
-      <label>Conto DARE (fisso)</label>
-      <input class="readonly" readonly value="47042">
-    </div>
+    <div class="field"><label>Data registrazione / presentazione</label><input type="date" id="data-reg"></div>
+    <div class="field"><label>Numero distinta</label><input type="text" id="num-distinta" placeholder="es. 33/2025"></div>
+    <div class="field"><label>Conto DARE (fisso)</label><input class="readonly" readonly value="47042"></div>
   </div>
   <div style="margin-top:14px">
-    <button class="btn-primary" id="btn-parse">Leggi righe dal PDF →</button>
+    <button class="btn-primary" id="btn-parse">Leggi righe dal PDF &#8594;</button>
   </div>
 </div>
 
-<!-- TABLE -->
 <div class="card hidden" id="card-table">
-  <div class="card-title"><span class="step-num">3</span> Righe distinta — verifica</div>
+  <div class="card-title"><span class="step-num">3</span> Righe distinta &mdash; verifica</div>
   <div id="alert-box"></div>
   <div class="tbl-wrap">
     <table>
-      <thead>
-        <tr>
-          <th style="width:32px">#</th>
-          <th>Debitore</th>
-          <th style="width:110px">Scadenza</th>
-          <th style="width:110px;text-align:right">Importo €</th>
-          <th style="width:80px">C. Dare</th>
-          <th style="width:155px">C. Avere (cliente)</th>
-          <th style="width:85px">Stato</th>
-        </tr>
-      </thead>
+      <thead><tr>
+        <th style="width:32px">#</th>
+        <th>Debitore</th>
+        <th style="width:110px">Scadenza</th>
+        <th style="width:110px;text-align:right">Importo &euro;</th>
+        <th style="width:80px">C. Dare</th>
+        <th style="width:155px">C. Avere (cliente)</th>
+        <th style="width:85px">Stato</th>
+      </tr></thead>
       <tbody id="tbl-body"></tbody>
       <tfoot id="tbl-foot"></tfoot>
     </table>
   </div>
+  <details>
+    <summary>Testo estratto dal PDF (apri se qualcosa non funziona)</summary>
+    <pre id="debug-text"></pre>
+  </details>
 </div>
 
-<!-- EXPORT -->
 <div class="card hidden" id="card-export">
   <div class="card-title"><span class="step-num">4</span> Esporta</div>
   <div class="btn-row">
-    <button class="btn-primary" id="btn-xml">⬇ Scarica XML per GB Software</button>
-    <button class="btn-ghost" id="btn-xlsx">⬇ Scarica Excel riepilogo</button>
+    <button class="btn-primary" id="btn-xml">&#8595; Scarica XML per GB Software</button>
+    <button class="btn-ghost" id="btn-xlsx">&#8595; Scarica Excel riepilogo</button>
   </div>
 </div>
 
 </main>
-
 <script>
-pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
-/* ── ANAGRAFICA ─────────────────────────────────────────────────────────────── */
-const ANA_KEY = 'riba_anagrafica_v1';
+const ANA_KEY='riba_anagrafica_v1';
+const DEFAULT_ANA=[["40011","A TAVOLA A TASTE OF ITALY"],["40014","SAO GUILT FREE BAR S.R.L."],["40018","Ristorante all' Antica Torre snc di"],["40020","PELLEGRINI SANDRO"],["40021","HOTEL VIERTLERHOF Reiterer Florian"],["40022","FORNO E SAPORI SRL"],["40024","AL FIENILE di Ventura Stefano e Mic"],["40027","ANTICA BOTTEGA DEL GUSTO SRL"],["40032","FORNERIA I CERMINARA DUE DI ZANINI"],["40037","TACCOLINI DISTRIBUZIONE  SRL"],["40038","T.N.V. srl"],["40060","OLEIFICIO DI MONIGA S.R.L"],["4010041","INOX HOUSE"],["4010043","ZINI 1915 SRL Specialita Alimentari"],["401059101","FPM PRESSE SRL"],["401060810","CHINELLI GIANFERMO"],["401060831","JODO Italia S.r.l."],["401060832","ASSOTRADING SRL"],["401060836","ANTIK ARS SRL UNIPERSONALE"],["401060839","ESGANO Gmbh & Co. KG"],["401060844","PIAVE  TYRES SRL"],["401060845","TORNERIA ESSEZETA SRL"],["401060848","OFFICINE MECCANICHE ROSELLI SRL"],["401060849","METALPRES DONATI SPA"],["401060850","VE.MA.CAR srl"],["401060851","PUBBLICITA SL"],["401060856","PRO-STAMP srl"],["401060868","TECNOPRESS SNC di Baccolo Maurizio"],["401060869","Volontari Croce Bianca Lumezzane"],["401060872","VCB Securitas S.p.A."],["401060874","DONATI SpA"],["401060876","METALGLAS BONOMI SRL"],["401060879","FARMACIA SAN FRANCESCO snc di dott."],["401060881","PLATEK SRL"],["401060890","PLAST B DI BIANCHI DAVIDE"],["401060891","IDROBRA TERMOIDRAULICA SAS DI BRAGH"],["401060892","ALPAR SYSTEM SRL"],["401060894","PRESSOFUSIONI BRESCIANE srl"],["401060895","STUDIO BGA"],["401060897","SARCOP SRL"],["401060899","GECA SRL"],["401060900","CPF INDUSTRIALE SRL"],["401060901","TECNOCONTROL s.r.l."],["401060906","BENEDINI SRL"],["401060908","MEPRA SPA"],["401060909","ALBERGO VITTORIA Di Dedei Mariangel"],["401060910","ZETA CABLAGGI SRL"],["401060914","AMA LUXURY SHOWER S.R.L."],["401060915","PRANDELLI SANTO SRL"],["401060916","GUERINI INGEGNERIA SRLS"],["401060918","BUGATTI SANITARY TAPS SRL"],["401060925","ASOFORGE s.r.l."],["401060928","BERTOLINI FRANCESCA"],["401060930","MARTIN SAS Di Martinelli Paolo"],["401060938","IVELPRESS STAMPAGGIO OTTONE SNC DI"],["401060941","P.M.P. PROMOZIONALI SRL"],["401060944","ARCOBALENO SPAC"],["401060947","CARROZZERIA CRISTALLO di Morelli G."],["401060948","F.LLI SALVATTI SNC DI SALVATTI IVAN"],["401060949","BERTANI SPA"],["401060950","Rappresentanze Siderurgiche CENEDEL"],["401060952","GULEO SRLS"],["401060953","ASOFORGE s.r.l. Unipersonale"],["401061002","ASSOCIAZIONE TERRITORIALE U.N.S.I.C"],["401061014","SPAD SRL"],["401061034","FRIGOTECH SRL"],["401061035","IL FIGLIO DI MASSIMO SRL"],["401061044","CIMA FORNITURE EDILI SRL"],["401061046","BATH PRO SRL"],["401061052","FRUTTA NUDA SRL"],["401061053","TIEMME RACCORDERIE S.P.A."],["401061055","CARROZZERIA ARTIGIANA DI ZIONI PIET"],["401061056","C.M. COSTRUZIONI SRL"],["401061057","MECCANICA MELZANI SRL"],["401061058","KEIMFARBEN COLORI MINERALI SRL"],["401061059","SOCIETA AGRICOLA FEDELI"],["401061062","BOLOGNINI GIULIO & C. snc"],["401061064","PASTICCERIA DANTE Di Milanesi Anna"],["401061066","TONOLI GROUP S.R.L."],["401061067","E.T.B. ELETTROTECNICA TONNI E BENUZ"],["401061068","LA FONTE SRL"],["401061069","LIBERTYHOMES SRL"],["409957","NODARI TECH di Nodari Alessia & C."],["409973","B3L di Bianchi A. & C. Sas"],["409974","IL CEPPO di Bormetti & C. snc"],["409976","NEW LAKE SRL"],["409991","MORI EVARISTO STAMPI DI MORI GIORGI"],["409998","DOTT. MARCHETTI BRUNO"]];
 
-const DEFAULT_ANA = [["40011","A TAVOLA A TASTE OF ITALY"],["40014","SAO GUILT FREE BAR S.R.L."],["40018","Ristorante all' Antica Torre snc di"],["40020","PELLEGRINI SANDRO"],["40021","HOTEL VIERTLERHOF Reiterer Florian"],["40022","FORNO E SAPORI SRL"],["40024","AL FIENILE di Ventura Stefano e Mic"],["40027","ANTICA BOTTEGA DEL GUSTO SRL"],["40032","FORNERIA I CERMINARA DUE DI ZANINI"],["40037","TACCOLINI DISTRIBUZIONE  SRL"],["40038","T.N.V. srl"],["40060","OLEIFICIO DI MONIGA S.R.L"],["4010041","INOX HOUSE"],["4010043","ZINI 1915 SRL Specialità Alimentari"],["401059101","FPM PRESSE SRL"],["401060810","CHINELLI GIANFERMO"],["401060831","JODO Italia S.r.l."],["401060832","ASSOTRADING SRL"],["401060836","ANTIK ARS SRL UNIPERSONALE"],["401060839","ESGANO Gmbh & Co. KG"],["401060844","PIAVE  TYRES SRL"],["401060845","TORNERIA ESSEZETA SRL"],["401060848","OFFICINE MECCANICHE ROSELLI SRL"],["401060849","METALPRES DONATI SPA"],["401060850","VE.MA.CAR srl"],["401060851","PUBBLICITA' SL"],["401060856","PRO-STAMP srl"],["401060868","TECNOPRESS SNC di Baccolo Maurizio"],["401060869","Volontari Croce Bianca Lumezzane"],["401060872","VCB Securitas S.p.A."],["401060874","DONATI SpA"],["401060876","METALGLAS BONOMI SRL"],["401060879","FARMACIA SAN FRANCESCO snc di dott."],["401060881","PLATEK SRL"],["401060890","PLAST B DI BIANCHI DAVIDE"],["401060891","IDROBRA TERMOIDRAULICA SAS DI BRAGH"],["401060892","ALPAR SYSTEM SRL"],["401060894","PRESSOFUSIONI BRESCIANE srl"],["401060895","STUDIO BGA"],["401060897","SARCOP SRL"],["401060899","GECA SRL"],["401060900","CPF INDUSTRIALE SRL"],["401060901","TECNOCONTROL s.r.l."],["401060906","BENEDINI SRL"],["401060908","MEPRA SPA"],["401060909","ALBERGO VITTORIA Di Dedei Mariangel"],["401060910","ZETA CABLAGGI SRL"],["401060914","AMA LUXURY SHOWER S.R.L."],["401060915","PRANDELLI SANTO SRL"],["401060916","GUERINI INGEGNERIA SRLS"],["401060918","BUGATTI SANITARY TAPS SRL"],["401060925","ASOFORGE s.r.l. *non usare*"],["401060928","BERTOLINI FRANCESCA"],["401060930","MARTIN SAS Di Martinelli Paolo"],["401060938","IVELPRESS STAMPAGGIO OTTONE SNC DI"],["401060941","P.M.P. PROMOZIONALI SRL"],["401060944","ARCOBALENO SPAC"],["401060947","CARROZZERIA CRISTALLO di Morelli G."],["401060948","F.LLI SALVATTI SNC DI SALVATTI IVAN"],["401060949","BERTANI SPA"],["401060950","Rappresentanze Siderurgiche CENEDEL"],["401060952","GULEO SRLS"],["401060953","ASOFORGE s.r.l. Unipersonale"],["401061002","ASSOCIAZIONE TERRITORIALE U.N.S.I.C"],["401061014","SPAD SRL"],["401061034","FRIGOTECH SRL"],["401061035","IL FIGLIO DI MASSIMO SRL"],["401061044","CIMA FORNITURE EDILI SRL"],["401061046","BATH PRO SRL"],["401061052","FRUTTA NUDA SRL"],["401061053","TIEMME RACCORDERIE S.P.A."],["401061055","CARROZZERIA ARTIGIANA DI ZIONI PIET"],["401061056","C.M. COSTRUZIONI SRL"],["401061057","MECCANICA MELZANI SRL"],["401061058","KEIMFARBEN COLORI MINERALI SRL"],["401061059","SOCIETA' AGRICOLA FEDELI"],["401061062","BOLOGNINI GIULIO & C. snc"],["401061064","PASTICCERIA DANTE  Di Milanesi Anna"],["401061066","TONOLI GROUP S.R.L."],["401061067","E.T.B. ELETTROTECNICA TONNI E BENUZ"],["401061068","LA FONTE SRL"],["401061069","LIBERTYHOMES SRL"],["409957","NODARI TECH di Nodari Alessia & C."],["409973","B3L di Bianchi A. & C. Sas"],["409974","IL CEPPO di Bormetti & C. snc"],["409976","NEW LAKE SRL"],["409991","MORI EVARISTO STAMPI DI MORI GIORGI"],["409998","DOTT. MARCHETTI BRUNO"]];
-
-let anagrafica = [];
-
-function loadAna() {
-  try {
-    const saved = localStorage.getItem(ANA_KEY);
-    anagrafica = saved ? JSON.parse(saved) : DEFAULT_ANA;
-  } catch(e) {
-    anagrafica = DEFAULT_ANA;
+let anagrafica=[];
+function loadAna(){try{const s=localStorage.getItem(ANA_KEY);anagrafica=s?JSON.parse(s):DEFAULT_ANA;}catch(e){anagrafica=DEFAULT_ANA;}updateAnaUI();}
+function saveAna(data){anagrafica=data;try{localStorage.setItem(ANA_KEY,JSON.stringify(data));}catch(e){}updateAnaUI();}
+function updateAnaUI(){document.getElementById('ana-count').textContent=anagrafica.length+' clienti in anagrafica';}
+function matchConto(nome){
+  const n=nome.toUpperCase().replace(/[^A-Z0-9 ]/g,' ').replace(/\s+/g,' ').trim();
+  let best='',bestScore=0;
+  for(const[conto,ragione]of anagrafica){
+    const r=ragione.toUpperCase().replace(/[^A-Z0-9 ]/g,' ').replace(/\s+/g,' ').trim();
+    const words=r.split(' ').filter(w=>w.length>3);
+    let score=0;
+    for(const w of words)if(n.includes(w))score++;
+    if(score>bestScore){bestScore=score;best=conto;}
   }
-  updateAnaUI();
+  return bestScore>=1?best:'';
 }
 
-function saveAna(data) {
-  anagrafica = data;
-  try { localStorage.setItem(ANA_KEY, JSON.stringify(data)); } catch(e) {}
-  updateAnaUI();
-}
-
-function updateAnaUI() {
-  document.getElementById('ana-count').textContent = anagrafica.length + ' clienti in anagrafica';
-}
-
-function matchConto(nome) {
-  const n = nome.toUpperCase().replace(/[^A-Z0-9 ]/g, ' ').replace(/\s+/g,' ').trim();
-  let best = '', bestScore = 0;
-  for (const [conto, ragione] of anagrafica) {
-    const r = ragione.toUpperCase().replace(/[^A-Z0-9 ]/g, ' ').replace(/\s+/g,' ').trim();
-    const words = r.split(' ').filter(w => w.length > 3);
-    let score = 0;
-    for (const w of words) if (n.includes(w)) score++;
-    if (score > bestScore) { bestScore = score; best = conto; }
-  }
-  return bestScore >= 1 ? best : '';
-}
-
-// Load anagrafica from Excel file
-document.getElementById('ana-file').addEventListener('change', async e => {
-  const file = e.target.files[0];
-  if (!file) return;
-  const buf = await file.arrayBuffer();
-  const wb = XLSX.read(buf);
-  const ws = wb.Sheets[wb.SheetNames[0]];
-  const rows = XLSX.utils.sheet_to_json(ws, { header: 1 });
-  const data = rows
-    .filter(r => r[0] && r[2])
-    .map(r => [String(r[0]).trim(), String(r[2]).trim()]);
-  if (data.length === 0) return alert('Nessun dato trovato. Il file deve avere: colonna A = conto, colonna C = ragione sociale.');
+document.getElementById('ana-file').addEventListener('change',async e=>{
+  const file=e.target.files[0];if(!file)return;
+  const buf=await file.arrayBuffer();
+  const wb=XLSX.read(buf);
+  const ws=wb.Sheets[wb.SheetNames[0]];
+  const rows=XLSX.utils.sheet_to_json(ws,{header:1});
+  const data=rows.filter(r=>r[0]&&r[2]).map(r=>[String(r[0]).trim(),String(r[2]).trim()]);
+  if(!data.length)return alert('Nessun dato trovato. Colonna A=conto, Colonna C=ragione sociale.');
   saveAna(data);
-  document.getElementById('ana-name').textContent = '← ' + file.name;
-  e.target.value = '';
-  alert(`Anagrafica aggiornata: ${data.length} clienti salvati.`);
+  document.getElementById('ana-name').textContent='<- '+file.name;
+  e.target.value='';
+  alert('Anagrafica aggiornata: '+data.length+' clienti salvati.');
 });
 
-/* ── PDF UPLOAD ─────────────────────────────────────────────────────────────── */
-const dz = document.getElementById('drop-zone');
-dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('over'); });
-dz.addEventListener('dragleave', () => dz.classList.remove('over'));
-dz.addEventListener('drop', e => { e.preventDefault(); dz.classList.remove('over'); handlePDF(e.dataTransfer.files[0]); });
-document.getElementById('pdf-file').addEventListener('change', e => handlePDF(e.target.files[0]));
+const dz=document.getElementById('drop-zone');
+dz.addEventListener('dragover',e=>{e.preventDefault();dz.classList.add('over');});
+dz.addEventListener('dragleave',()=>dz.classList.remove('over'));
+dz.addEventListener('drop',e=>{e.preventDefault();dz.classList.remove('over');handlePDF(e.dataTransfer.files[0]);});
+document.getElementById('pdf-file').addEventListener('change',e=>handlePDF(e.target.files[0]));
 
-let pdfPages = [];
+let allPageText='';
 
-async function handlePDF(file) {
-  if (!file || file.type !== 'application/pdf') return alert('Carica un file PDF.');
-  document.getElementById('dz-title').textContent = '⏳ Lettura in corso…';
-
-  const buf = await file.arrayBuffer();
-  const pdf = await pdfjsLib.getDocument({ data: buf }).promise;
-
-  pdfPages = [];
-  for (let i = 1; i <= pdf.numPages; i++) {
-    const page = await pdf.getPage(i);
-    const content = await page.getTextContent();
-    // Collect items with position for layout-aware parsing
-    const items = content.items.map(it => ({
-      text: it.str.trim(),
-      x: Math.round(it.transform[4]),
-      y: Math.round(it.transform[5])
-    })).filter(it => it.text.length > 0);
-    pdfPages.push(items);
+async function handlePDF(file){
+  if(!file||file.type!=='application/pdf')return alert('Carica un file PDF.');
+  document.getElementById('dz-title').textContent='Lettura in corso...';
+  const buf=await file.arrayBuffer();
+  const pdf=await pdfjsLib.getDocument({data:buf}).promise;
+  let fullText='';
+  for(let p=1;p<=pdf.numPages;p++){
+    const page=await pdf.getPage(p);
+    const content=await page.getTextContent();
+    const items=content.items
+      .filter(it=>it.str.trim().length>0)
+      .map(it=>({str:it.str.trim(),x:it.transform[4],y:Math.round(it.transform[5])}));
+    items.sort((a,b)=>b.y-a.y||a.x-b.x);
+    const lines=[];
+    for(const item of items){
+      const ex=lines.find(l=>Math.abs(l.y-item.y)<=4);
+      if(ex)ex.items.push(item);
+      else lines.push({y:item.y,items:[item]});
+    }
+    for(const line of lines){
+      line.items.sort((a,b)=>a.x-b.x);
+      fullText+=line.items.map(i=>i.str).join(' ')+'\n';
+    }
+    fullText+='\n';
   }
-
+  allPageText=fullText;
+  const dateM=fullText.match(/(\d{2}\/\d{2}\/\d{4})/);
+  if(dateM){const[d,m,y]=dateM[1].split('/');document.getElementById('data-reg').value=`${y}-${m}-${d}`;}
+  const nM=fullText.match(/N\.\s*(\d+)/i);
+  const yM=fullText.match(/\b(20\d{2})\b/);
+  if(nM)document.getElementById('num-distinta').value=nM[1]+(yM?'/'+yM[1]:'');
   dz.classList.add('loaded');
-  document.getElementById('dz-title').textContent = '✓ ' + file.name;
-  document.getElementById('dz-sub').textContent = pdf.numPages + ' pagine lette correttamente';
-
-  // Auto-detect date di presentazione
-  const allText = pdfPages.flat().map(i => i.text).join(' ');
-  const dateMatches = allText.match(/(\d{2}\/\d{2}\/\d{4})/g) || [];
-  if (dateMatches.length > 0) {
-    const [d, m, y] = dateMatches[0].split('/');
-    document.getElementById('data-reg').value = `${y}-${m}-${d}`;
-  }
-  // Auto-detect numero distinta
-  const nMatch = allText.match(/N\.\s*(\d+)/i);
-  const yMatch = allText.match(/\b(20\d{2})\b/);
-  if (nMatch) {
-    document.getElementById('num-distinta').value = nMatch[1] + (yMatch ? '/' + yMatch[1] : '');
-  }
-
+  document.getElementById('dz-title').textContent='OK: '+file.name;
+  document.getElementById('dz-sub').textContent=pdf.numPages+' pagine lette';
   document.getElementById('card-params').classList.remove('hidden');
 }
 
-/* ── PARSE PDF ──────────────────────────────────────────────────────────────── */
-document.getElementById('btn-parse').addEventListener('click', () => {
-  const rows = parsePDF();
-  if (rows.length === 0) {
-    alert('Nessuna riga trovata. Verifica che il PDF sia quello corretto.');
+document.getElementById('btn-parse').addEventListener('click',()=>{
+  const rows=parsePDF(allPageText);
+  document.getElementById('debug-text').textContent=allPageText;
+  if(!rows.length){
+    document.getElementById('alert-box').innerHTML='<div class="alert alert-err">Nessuna riga trovata. Apri il riquadro "Testo estratto" qui sotto per verificare cosa ha letto il browser dal PDF.</div>';
+    document.getElementById('card-table').classList.remove('hidden');
     return;
   }
   renderTable(rows);
 });
 
-function parsePDF() {
-  // The Ri.Ba. distinta has a consistent layout:
-  // Page 1 (Elenco Disposizioni): table with Creditore | Debitore | Abi | Cab | Importo | Data Pagamento
-  // Pages 2+ (Dettaglio): numbered rows with Scadenza, Debitore, Importo at end of row
-  //
-  // Strategy: find all lines containing a date (DD/MM/YYYY) and a euro amount (N.NNN,NN €)
-  const results = [];
-  const seen = new Set();
-
-  for (const items of pdfPages) {
-    // Group items by Y coordinate (same line = within 4px)
-    const lines = groupByY(items, 4);
-
-    for (const line of lines) {
-      const text = line.map(i => i.text).join(' ');
-      // Look for date pattern DD/MM/YYYY
-      const dateMatch = text.match(/\b(\d{2}\/\d{2}\/\d{4})\b/);
-      // Look for euro amount: digits with dot/comma separators followed by € or just decimal
-      const amtMatch = text.match(/\b(\d{1,3}(?:[.,]\d{3})*[.,]\d{2})\s*€?\b/g);
-      if (!dateMatch || !amtMatch) continue;
-
-      // Skip header lines
-      const upper = text.toUpperCase();
-      if (upper.includes('DATA PAGAMENTO') || upper.includes('SCADENZA') || upper.includes('IMPORTO') || upper.includes('DEBITORE')) continue;
-
-      // Parse amount — take the largest one on the line (most likely the importo)
-      let importo = 0;
-      for (const a of amtMatch) {
-        const v = parseAmount(a);
-        if (v > importo) importo = v;
-      }
-      if (importo <= 0) continue;
-
-      // Extract debitore: the longest "word group" that isn't a date/number
-      const debitore = extractDebitore(line, text);
-      if (!debitore || debitore.length < 3) continue;
-
-      // Deduplicate: same debitore + scadenza + importo
-      const key = `${debitore}|${dateMatch[1]}|${importo}`;
-      if (seen.has(key)) continue;
-      seen.add(key);
-
-      results.push({ debitore, scadenza: dateMatch[1], importo });
-    }
+function parsePDF(text){
+  const results=[];
+  const seen=new Set();
+  const lines=text.split('\n');
+  for(const line of lines){
+    const up=line.toUpperCase();
+    if(!line.trim())continue;
+    if(up.includes('CREDITORE')||up.includes('ABI DEBITORE')||up.includes('CAB DEBITORE')||
+       up.includes('DATA PAGAMENTO')||up.includes('ELENCO DISPOSIZIONI')||
+       up.includes('INCASSI')||up.match(/^CREA\s+SR/i))continue;
+    // Must have date DD/MM/YYYY
+    const dateM=line.match(/\b(\d{2}\/\d{2}\/\d{4})\b/);
+    if(!dateM)continue;
+    // Must have Italian amount with euro sign: "504,55 €" or "1.896,38 €"
+    const amtM=line.match(/\b(\d{1,3}(?:\.\d{3})*,\d{2})\s*\u20ac/);
+    if(!amtM)continue;
+    const importo=parseAmt(amtM[1]);
+    if(importo<=0)continue;
+    const scadenza=dateM[1];
+    // Clean line to extract debitore
+    let deb=line
+      .replace(/\b\d{2}\/\d{2}\/\d{4}\b/g,'')
+      .replace(/\b\d{1,3}(?:\.\d{3})*,\d{2}\s*\u20ac\b/g,'')
+      .replace(/\b\d{5}\b/g,'')
+      .replace(/CREA\s+Sr[il]/gi,'')
+      .replace(/\u20ac/g,'')
+      .replace(/\s+/g,' ').trim();
+    // Remove trailing garbage after long space or digit sequence
+    deb=deb.replace(/\s{2,}.*$/,'').trim();
+    if(!deb||deb.length<3)continue;
+    const key=`${deb}|${scadenza}|${importo}`;
+    if(seen.has(key))continue;
+    seen.add(key);
+    results.push({debitore:deb,scadenza,importo});
   }
-
-  // Sort by scadenza then debitore
-  results.sort((a, b) => {
-    const da = parseDate(a.scadenza), db = parseDate(b.scadenza);
-    return da - db || a.debitore.localeCompare(b.debitore);
+  results.sort((a,b)=>{
+    const[da,db]=[a.scadenza,b.scadenza].map(s=>{const[d,m,y]=s.split('/');return new Date(y,m-1,d);});
+    return da-db||a.debitore.localeCompare(b.debitore);
   });
-
   return results;
 }
 
-function groupByY(items, tolerance) {
-  const groups = [];
-  const sorted = [...items].sort((a, b) => b.y - a.y || a.x - b.x);
-  for (const item of sorted) {
-    const g = groups.find(gr => Math.abs(gr[0].y - item.y) <= tolerance);
-    if (g) g.push(item);
-    else groups.push([item]);
-  }
-  return groups.map(g => g.sort((a, b) => a.x - b.x));
-}
+function parseAmt(s){return parseFloat(s.replace(/\./g,'').replace(',','.'))||0;}
 
-function parseAmount(s) {
-  // Handle Italian format: 1.234,56 or 1234,56 or 1234.56
-  let clean = s.replace(/[€\s]/g, '').trim();
-  if (clean.includes(',') && clean.includes('.')) {
-    // 1.234,56 → 1234.56
-    clean = clean.replace(/\./g, '').replace(',', '.');
-  } else if (clean.includes(',')) {
-    clean = clean.replace(',', '.');
-  }
-  return parseFloat(clean) || 0;
-}
-
-function extractDebitore(lineItems, fullText) {
-  // Remove dates, amounts, short codes (ABI/CAB are 5 digits)
-  const tokens = lineItems
-    .map(i => i.text)
-    .filter(t => {
-      if (/^\d{2}\/\d{2}\/\d{4}$/.test(t)) return false; // date
-      if (/^[\d.,]+\s*€?$/.test(t)) return false; // number
-      if (/^\d{5}$/.test(t)) return false; // ABI/CAB
-      if (/^(BS|SO|TS|TO|MI|MN|CR|BG|BS I|TS I|SO I)$/i.test(t)) return false; // province
-      if (/^(Importo|BS|SO|COL|RIBA|BPER|BANCA|IT[A-Z0-9]{25})/.test(t)) return false;
-      if (t.length < 2) return false;
-      return true;
-    });
-
-  // Find the longest contiguous sequence that looks like a company name
-  // (uppercase letters, spaces, common punctuation)
-  let best = '';
-  let current = [];
-  for (const t of tokens) {
-    if (/^[A-ZÀÈÉÌÒÙ0-9\s'.,&()-]+$/i.test(t) && t.length > 1) {
-      current.push(t);
-    } else {
-      const candidate = current.join(' ');
-      if (candidate.length > best.length) best = candidate;
-      current = [];
-    }
-  }
-  const last = current.join(' ');
-  if (last.length > best.length) best = last;
-  return best.trim();
-}
-
-function parseDate(s) {
-  const [d, m, y] = s.split('/');
-  return new Date(y, m - 1, d);
-}
-
-function toISODate(s) {
-  if (!s) return '';
-  if (s.includes('-')) return s; // already ISO
-  const [d, m, y] = s.split('/');
-  return `${y}-${m.padStart(2,'0')}-${d.padStart(2,'0')}`;
-}
-
-/* ── RENDER TABLE ───────────────────────────────────────────────────────────── */
-let currentRows = [];
-
-function renderTable(rows) {
-  currentRows = rows;
-  const tbody = document.getElementById('tbl-body');
-  const tfoot = document.getElementById('tbl-foot');
-  tbody.innerHTML = '';
-
-  let totale = 0, missing = 0;
-
-  rows.forEach((r, i) => {
-    const conto = matchConto(r.debitore);
-    if (!conto) missing++;
-    totale += r.importo;
-
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td>${i + 1}</td>
-      <td>${escHtml(r.debitore)}</td>
-      <td>${r.scadenza}</td>
-      <td class="num">${r.importo.toLocaleString('it-IT', { minimumFractionDigits: 2 })}</td>
-      <td><span class="conto-dare">47042</span></td>
-      <td><input class="conto-avere-input${conto ? '' : ' missing'}" data-idx="${i}" value="${escHtml(conto)}" placeholder="inserire conto"></td>
-      <td>${conto ? '<span class="pill pill-ok">&#10003; auto</span>' : '<span class="pill pill-warn">manuale</span>'}</td>
-    `;
+let currentRows=[];
+function renderTable(rows){
+  currentRows=rows;
+  const tbody=document.getElementById('tbl-body');
+  const tfoot=document.getElementById('tbl-foot');
+  tbody.innerHTML='';
+  let totale=0,missing=0;
+  rows.forEach((r,i)=>{
+    const conto=matchConto(r.debitore);
+    if(!conto)missing++;
+    totale+=r.importo;
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td>${i+1}</td><td>${esc(r.debitore)}</td><td>${r.scadenza}</td>`+
+      `<td class="num">${r.importo.toLocaleString('it-IT',{minimumFractionDigits:2})}</td>`+
+      `<td><span class="conto-dare">47042</span></td>`+
+      `<td><input class="conto-avere-input${conto?'':' missing'}" data-idx="${i}" value="${esc(conto)}" placeholder="inserire conto"></td>`+
+      `<td>${conto?'<span class="pill pill-ok">auto</span>':'<span class="pill pill-warn">manuale</span>'}</td>`;
     tbody.appendChild(tr);
   });
-
-  const fmt = v => v.toLocaleString('it-IT', { minimumFractionDigits: 2 });
-  tfoot.innerHTML = `<tr>
-    <td colspan="3" style="text-align:right">Totale distinta</td>
-    <td class="num">${fmt(totale)}</td>
-    <td colspan="3"></td>
-  </tr>`;
-
-  const alertBox = document.getElementById('alert-box');
-  if (missing === 0) {
-    alertBox.innerHTML = `<div class="alert alert-ok">&#10003; ${rows.length} righe trovate — tutti i conti abbinati automaticamente dall'anagrafica.</div>`;
-  } else {
-    alertBox.innerHTML = `<div class="alert alert-warn">&#9888; ${rows.length} righe trovate — ${rows.length - missing} conti abbinati automaticamente, <strong>${missing} da compilare manualmente</strong> (evidenziati in giallo).</div>`;
+  tfoot.innerHTML=`<tr><td colspan="3" style="text-align:right">Totale distinta</td>`+
+    `<td class="num">${totale.toLocaleString('it-IT',{minimumFractionDigits:2})}</td><td colspan="3"></td></tr>`;
+  const ab=document.getElementById('alert-box');
+  if(missing===0){
+    ab.innerHTML=`<div class="alert alert-ok">OK: ${rows.length} righe trovate, tutti i conti abbinati automaticamente.</div>`;
+  }else{
+    ab.innerHTML=`<div class="alert alert-warn">Attenzione: ${rows.length} righe trovate, ${rows.length-missing} conti abbinati automaticamente, ${missing} da compilare manualmente (in giallo).</div>`;
   }
-
   document.getElementById('card-table').classList.remove('hidden');
   document.getElementById('card-export').classList.remove('hidden');
-  document.getElementById('card-table').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  document.getElementById('card-table').scrollIntoView({behavior:'smooth',block:'start'});
 }
 
-function getConti() {
-  return Array.from(document.querySelectorAll('.conto-avere-input')).map(i => i.value.trim());
-}
+function getConti(){return Array.from(document.querySelectorAll('.conto-avere-input')).map(i=>i.value.trim());}
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function toISO(s){if(!s)return'';if(s.includes('-'))return s;const[d,m,y]=s.split('/');return`${y}-${m.padStart(2,'0')}-${d.padStart(2,'0')}`;}
 
-function escHtml(s) {
-  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
-
-/* ── EXPORT XML ─────────────────────────────────────────────────────────────── */
-document.getElementById('btn-xml').addEventListener('click', () => {
-  const conti = getConti();
-  const vuoti = conti.filter(c => !c).length;
-  if (vuoti > 0) return alert(`Compila prima i ${vuoti} conti cliente mancanti (evidenziati in giallo).`);
-
-  const dataReg = document.getElementById('data-reg').value;
-  const numDist = document.getElementById('num-distinta').value.replace('/', '');
-
-  let xml = `<?xml version="1.0" encoding="UTF-8"?>\n`;
-  xml += `<PrimaNotaXsd xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="SchemaImportazionePrimaNotaV2.xsd">\n`;
-  xml += `\t<ListaPrimaNota>\n`;
-
-  currentRows.forEach((r, i) => {
-    const imp = r.importo.toFixed(2);
-    const dataISO = toISODate(dataReg);
-    const descr = escHtml(`Ri.Ba. scad. ${r.scadenza} - ${r.debitore.substring(0, 40)}`);
-    const numDoc = `RIBA-${numDist}-${String(i + 1).padStart(2, '0')}`;
-
-    xml += `\t\t<PrimaNotaImportazione>\n`;
-    xml += `\t\t\t<PrimaNotaNonIva>\n`;
-    xml += `\t\t\t\t<PrimaNotaDatiGenerici>\n`;
-    xml += `\t\t\t\t\t<CausaleContabile>IN02</CausaleContabile>\n`;
-    xml += `\t\t\t\t\t<NumeroDocumento>${numDoc}</NumeroDocumento>\n`;
-    xml += `\t\t\t\t\t<DataDocumento>${dataISO}</DataDocumento>\n`;
-    xml += `\t\t\t\t\t<DataRegistrazione>${dataISO}</DataRegistrazione>\n`;
-    xml += `\t\t\t\t</PrimaNotaDatiGenerici>\n`;
-    xml += `\t\t\t\t<PrimaNotaSezioneConto>\n`;
-    xml += `\t\t\t\t\t<ListaDettaglioSezioneConto>\n`;
-    xml += `\t\t\t\t\t\t<SezioneContoDettaglioNonIva>\n`;
-    xml += `\t\t\t\t\t\t\t<Conto>47042</Conto>\n`;
-    xml += `\t\t\t\t\t\t\t<ImponibileConto>${imp}</ImponibileConto>\n`;
-    xml += `\t\t\t\t\t\t\t<Descrizione>${descr}</Descrizione>\n`;
-    xml += `\t\t\t\t\t\t</SezioneContoDettaglioNonIva>\n`;
-    xml += `\t\t\t\t\t\t<SezioneContoDettaglioNonIva>\n`;
-    xml += `\t\t\t\t\t\t\t<Conto>${conti[i]}</Conto>\n`;
-    xml += `\t\t\t\t\t\t\t<ImponibileConto>-${imp}</ImponibileConto>\n`;
-    xml += `\t\t\t\t\t\t\t<Descrizione>${descr}</Descrizione>\n`;
-    xml += `\t\t\t\t\t\t</SezioneContoDettaglioNonIva>\n`;
-    xml += `\t\t\t\t\t</ListaDettaglioSezioneConto>\n`;
-    xml += `\t\t\t\t</PrimaNotaSezioneConto>\n`;
-    xml += `\t\t\t</PrimaNotaNonIva>\n`;
-    xml += `\t\t</PrimaNotaImportazione>\n`;
+document.getElementById('btn-xml').addEventListener('click',()=>{
+  const conti=getConti();
+  const vuoti=conti.filter(c=>!c).length;
+  if(vuoti)return alert(`Compila prima i ${vuoti} conti cliente mancanti (in giallo).`);
+  const dataReg=document.getElementById('data-reg').value;
+  const numDist=document.getElementById('num-distinta').value.replace('/','');
+  let xml=`<?xml version="1.0" encoding="UTF-8"?>\n<PrimaNotaXsd xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="SchemaImportazionePrimaNotaV2.xsd">\n\t<ListaPrimaNota>\n`;
+  currentRows.forEach((r,i)=>{
+    const imp=r.importo.toFixed(2);
+    const d=toISO(dataReg);
+    const desc=esc(`Ri.Ba. scad. ${r.scadenza} - ${r.debitore.substring(0,40)}`);
+    const ndoc=`RIBA-${numDist}-${String(i+1).padStart(2,'0')}`;
+    xml+=`\t\t<PrimaNotaImportazione>\n\t\t\t<PrimaNotaNonIva>\n\t\t\t\t<PrimaNotaDatiGenerici>\n`;
+    xml+=`\t\t\t\t\t<CausaleContabile>IN02</CausaleContabile>\n\t\t\t\t\t<NumeroDocumento>${ndoc}</NumeroDocumento>\n`;
+    xml+=`\t\t\t\t\t<DataDocumento>${d}</DataDocumento>\n\t\t\t\t\t<DataRegistrazione>${d}</DataRegistrazione>\n\t\t\t\t</PrimaNotaDatiGenerici>\n`;
+    xml+=`\t\t\t\t<PrimaNotaSezioneConto>\n\t\t\t\t\t<ListaDettaglioSezioneConto>\n`;
+    xml+=`\t\t\t\t\t\t<SezioneContoDettaglioNonIva>\n\t\t\t\t\t\t\t<Conto>47042</Conto>\n`;
+    xml+=`\t\t\t\t\t\t\t<ImponibileConto>${imp}</ImponibileConto>\n\t\t\t\t\t\t\t<Descrizione>${desc}</Descrizione>\n\t\t\t\t\t\t</SezioneContoDettaglioNonIva>\n`;
+    xml+=`\t\t\t\t\t\t<SezioneContoDettaglioNonIva>\n\t\t\t\t\t\t\t<Conto>${conti[i]}</Conto>\n`;
+    xml+=`\t\t\t\t\t\t\t<ImponibileConto>-${imp}</ImponibileConto>\n\t\t\t\t\t\t\t<Descrizione>${desc}</Descrizione>\n\t\t\t\t\t\t</SezioneContoDettaglioNonIva>\n`;
+    xml+=`\t\t\t\t\t</ListaDettaglioSezioneConto>\n\t\t\t\t</PrimaNotaSezioneConto>\n\t\t\t</PrimaNotaNonIva>\n\t\t</PrimaNotaImportazione>\n`;
   });
-
-  xml += `\t</ListaPrimaNota>\n</PrimaNotaXsd>`;
-  triggerDownload(`RIBA_${numDist}_GB.xml`, xml, 'application/xml');
+  xml+=`\t</ListaPrimaNota>\n</PrimaNotaXsd>`;
+  dl(`RIBA_${numDist}_GB.xml`,xml,'application/xml');
 });
 
-/* ── EXPORT XLSX ────────────────────────────────────────────────────────────── */
-document.getElementById('btn-xlsx').addEventListener('click', () => {
-  const conti = getConti();
-  const numDist = document.getElementById('num-distinta').value;
-  const dataReg = document.getElementById('data-reg').value;
-
-  const data = [['#', 'Debitore', 'Scadenza', 'Importo €', 'C. Dare', 'C. Avere', 'Descrizione']];
-  let totale = 0;
-  currentRows.forEach((r, i) => {
-    totale += r.importo;
-    data.push([i + 1, r.debitore, r.scadenza, r.importo, '47042', conti[i], `Ri.Ba. scad. ${r.scadenza} - ${r.debitore}`]);
-  });
-  data.push(['', '', 'TOTALE', totale, '', '', '']);
-
-  const wb = XLSX.utils.book_new();
-  const ws = XLSX.utils.aoa_to_sheet(data);
-  ws['!cols'] = [{ wch: 4 }, { wch: 38 }, { wch: 12 }, { wch: 12 }, { wch: 10 }, { wch: 14 }, { wch: 50 }];
-  XLSX.utils.book_append_sheet(wb, ws, 'Distinta RIBA');
-  XLSX.writeFile(wb, `RIBA_${numDist.replace('/', '_')}.xlsx`);
+document.getElementById('btn-xlsx').addEventListener('click',()=>{
+  const conti=getConti();
+  const numDist=document.getElementById('num-distinta').value;
+  const data=[['#','Debitore','Scadenza','Importo EUR','C. Dare','C. Avere','Descrizione']];
+  let totale=0;
+  currentRows.forEach((r,i)=>{totale+=r.importo;data.push([i+1,r.debitore,r.scadenza,r.importo,'47042',conti[i],`Ri.Ba. scad. ${r.scadenza} - ${r.debitore}`]);});
+  data.push(['','','TOTALE',totale,'','','']);
+  const wb=XLSX.utils.book_new();
+  const ws=XLSX.utils.aoa_to_sheet(data);
+  ws['!cols']=[{wch:4},{wch:38},{wch:12},{wch:12},{wch:10},{wch:14},{wch:50}];
+  XLSX.utils.book_append_sheet(wb,ws,'Distinta RIBA');
+  XLSX.writeFile(wb,`RIBA_${numDist.replace('/','_')}.xlsx`);
 });
 
-function triggerDownload(filename, content, type) {
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(new Blob([content], { type }));
-  a.download = filename;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
+function dl(filename,content,type){
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([content],{type}));
+  a.download=filename;
+  document.body.appendChild(a);a.click();document.body.removeChild(a);
 }
 
-/* ── INIT ───────────────────────────────────────────────────────────────────── */
 loadAna();
 </script>
 </body>
