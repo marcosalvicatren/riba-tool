@@ -255,43 +255,20 @@ function parsePDF(text){
   const results=[];
   const seen=new Set();
 
-  // Strategy 1: match "CREA Sr* DEBITORE ABI CAB IMPORTO€ DATA" (page 1 layout)
-  const re1=/CREA\s+Sr[a-z.]*\s+(.+?)\s+\d{5}\s+\d{5}\s+(\d{1,3}(?:\.\d{3})*,\d{2})\s*\u20ac.{0,10}?(\d{2}\/\d{2}\/\d{4})/gi;
-  let m;
-  while((m=re1.exec(text))!==null){
-    const debitore=m[1].replace(/[|]/g,'').trim();
-    const importo=parseAmt(m[2]);
-    const scadenza=m[3];
-    if(importo<=0||debitore.length<2)continue;
+  // Split text into numbered blocks: each starts with "N DD/MM/YYYY DEBITORE..."
+  const blocks=text.split(/(?=\n\s*\d{1,2}\s+\d{2}\/\d{2}\/\d{4}\s)/);
+  for(const block of blocks){
+    const dm=block.match(/^\s*\d{1,2}\s+(\d{2}\/\d{2}\/\d{4})\s+([A-Z][\w\s.,&'()-]{2,50?})(?:\s+\d)/);
+    const im=block.match(/Importo\s*[-\u2014>~]+\s*([\d.,]+)/i);
+    if(!dm||!im) continue;
+    const scadenza=dm[1];
+    const debitore=dm[2].trim();
+    const importo=parseAmt(im[1]);
+    if(importo<=0||debitore.length<2) continue;
     const key=debitore+'|'+scadenza+'|'+importo;
-    if(seen.has(key))continue;
+    if(seen.has(key)) continue;
     seen.add(key);
     results.push({debitore,scadenza,importo});
-  }
-
-  // Strategy 2: fallback line-by-line for garbled lines
-  const lines=text.split('\n');
-  for(const line of lines){
-    const up=line.toUpperCase();
-    if(up.includes('CREDITORE')||up.includes('DATA PAGAMENTO')||up.includes('ELENCO')||up.includes('INCASSI'))continue;
-    const dateM=line.match(/\b(\d{2}\/\d{2}\/\d{4})\b/);
-    const amtM=line.match(/(\d{1,3}(?:\.\d{3})*,\d{2})\s*\u20ac/);
-    if(!dateM||!amtM)continue;
-    const importo=parseAmt(amtM[1]);
-    if(importo<=0)continue;
-    const scadenza=dateM[1];
-    let deb=line
-      .replace(/CREA\s+Sr[a-z.]*/gi,'')
-      .replace(/\b\d{2}\/\d{2}\/\d{4}\b/g,'')
-      .replace(/\d{1,3}(?:\.\d{3})*,\d{2}\s*\u20ac/g,'')
-      .replace(/\b\d{5}\b/g,'')
-      .replace(/[|_\-=*~<>«»]/g,' ')
-      .replace(/\s+/g,' ').trim();
-    if(!deb||deb.length<3)continue;
-    const key=deb+'|'+scadenza+'|'+importo;
-    if(seen.has(key))continue;
-    seen.add(key);
-    results.push({debitore:deb,scadenza,importo});
   }
 
   results.sort((a,b)=>{
@@ -300,7 +277,6 @@ function parsePDF(text){
   });
   return results;
 }
-
 function parseAmt(s){return parseFloat(s.replace(/\./g,'').replace(',','.'))||0;}
 
 let currentRows=[];
