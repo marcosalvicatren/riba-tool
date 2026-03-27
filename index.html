@@ -93,6 +93,12 @@ button{padding:9px 20px;border-radius:7px;font-size:13px;font-family:inherit;fon
   <div class="progress-label hidden" id="progress-label"></div>
   <input type="file" id="pdf-file" accept=".pdf" style="display:none">
 </div>
+<div style="margin-top:10px" id="debug-box" class="hidden">
+  <details>
+    <summary style="font-size:12px;color:#7a776e;cursor:pointer">Mostra testo letto dal PDF (utile se qualcosa non funziona)</summary>
+    <textarea id="debug-text" style="width:100%;height:180px;font-size:11px;font-family:monospace;margin-top:6px;padding:8px;border:1px solid #d2cec6;border-radius:6px" readonly></textarea>
+  </details>
+</div>
 
 <div class="card hidden" id="card-params">
   <div class="card-title"><span class="step-num">2</span> Parametri registrazione</div>
@@ -219,6 +225,8 @@ async function handlePDF(file){
 
   setProgress(100,'OCR completato.');
   allText=fullText;
+  document.getElementById("debug-text").value=fullText;
+  document.getElementById("debug-box").classList.remove("hidden");
 
   // Auto-detect date
   const dateM=fullText.match(/(\d{2}\/\d{2}\/\d{4})/);
